@@ -11,6 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* Health Check Route */
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    service: "CareerMatrix Backend",
+    timestamp: new Date().toISOString()
+  });
+});
+
+
 // Routes
 app.use('/api/auth', (await import('./routes/authRoutes.js')).default);
 app.use('/api/applications', (await import('./routes/applicationRoutes.js')).default);

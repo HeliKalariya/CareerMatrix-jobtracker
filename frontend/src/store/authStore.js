@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 const useAuthStore = create((set) => ({
   user: null,
   token: localStorage.getItem('token') || null,
@@ -8,7 +11,7 @@ const useAuthStore = create((set) => ({
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('/api/auth/me', {
+      const res = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -25,7 +28,7 @@ const useAuthStore = create((set) => ({
 
   login: async (email, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -43,7 +46,7 @@ const useAuthStore = create((set) => ({
 
   register: async (name, email, password) => {
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })

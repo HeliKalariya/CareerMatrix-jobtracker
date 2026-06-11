@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const getAuthHeaders = () => ({
   'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -13,7 +14,7 @@ const useApplicationStore = create((set, get) => ({
   fetchApplications: async () => {
     set({ loading: true });
     try {
-      const res = await fetch('/api/applications', { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/applications`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       set({ applications: data });
@@ -27,7 +28,7 @@ const useApplicationStore = create((set, get) => ({
 
   fetchApplicationById: async (id) => {
     try {
-      const res = await fetch(`/api/applications/${id}`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/applications/${id}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Failed to fetch application');
       return await res.json();
     } catch (err) {
@@ -38,7 +39,7 @@ const useApplicationStore = create((set, get) => ({
 
   addApplication: async (appData) => {
     try {
-      const res = await fetch('/api/applications', {
+      const res = await fetch(`${API_URL}/applications`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(appData)
@@ -57,7 +58,7 @@ const useApplicationStore = create((set, get) => ({
   updateApplication: async (appData) => {
     try {
       const { _id, ...body } = appData;
-      const res = await fetch(`/api/applications/${_id}`, {
+      const res = await fetch(`${API_URL}/applications/${_id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(body)
@@ -77,7 +78,7 @@ const useApplicationStore = create((set, get) => ({
 
   deleteApplication: async (id) => {
     try {
-      const res = await fetch(`/api/applications/${id}`, {
+      const res = await fetch(`${API_URL}/applications/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 const getAuthHeaders = () => ({
   'Authorization': `Bearer ${localStorage.getItem('token')}`,
   'Content-Type': 'application/json'
@@ -13,7 +16,7 @@ const useNotificationStore = create((set, get) => ({
   fetchNotifications: async () => {
     set({ loading: true });
     try {
-      const res = await fetch('/api/notifications', { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/notifications`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Failed to fetch notifications');
       const data = await res.json();
       set({ notifications: data });
@@ -27,7 +30,7 @@ const useNotificationStore = create((set, get) => ({
 
   fetchUnreadCount: async () => {
     try {
-      const res = await fetch('/api/notifications/unread-count', { headers: getAuthHeaders() });
+      const res = await fetch(`${API_URL}/notifications/unread-count`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error('Failed to fetch unread count');
       const data = await res.json();
       set({ unreadCount: data.count });
@@ -38,7 +41,7 @@ const useNotificationStore = create((set, get) => ({
 
   markAsRead: async (id) => {
     try {
-      const res = await fetch(`/api/notifications/${id}/read`, {
+      const res = await fetch(`${API_URL}/notifications/${id}/read`, {
         method: 'PUT',
         headers: getAuthHeaders()
       });
@@ -56,7 +59,7 @@ const useNotificationStore = create((set, get) => ({
 
   markAllAsRead: async () => {
     try {
-      const res = await fetch('/api/notifications/read-all', {
+      const res = await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
         headers: getAuthHeaders()
       });
@@ -72,7 +75,7 @@ const useNotificationStore = create((set, get) => ({
 
   deleteNotification: async (id) => {
     try {
-      const res = await fetch(`/api/notifications/${id}`, {
+      const res = await fetch(`${API_URL}/notifications/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

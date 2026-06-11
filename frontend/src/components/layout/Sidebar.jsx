@@ -8,7 +8,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Briefcase, label: 'Applications', path: '/applications' },
-    { icon: PlusCircle, label: 'Add Application', path: '/applications/new' },
+    // { icon: PlusCircle, label: 'Add Application', path: '/applications/new' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
   ];
 

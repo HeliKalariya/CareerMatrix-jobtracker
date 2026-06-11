@@ -6,11 +6,18 @@ import useNotificationStore from '../store/notificationStore';
 import StatusBadge from '../components/common/StatusBadge';
 import toast from 'react-hot-toast';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Applications = () => {
   const navigate = useNavigate();
-  const { applications, fetchApplications, deleteApplication } = useApplicationStore();
   const { fetchUnreadCount } = useNotificationStore();
-
+  const {
+  applications,
+  fetchApplications,
+  deleteApplication,
+  addApplication,
+  updateApplication
+} = useApplicationStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
@@ -81,31 +88,29 @@ const Applications = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const url = isEditing ? `/api/applications/${selectedApp._id}` : '/api/applications';
-      const method = isEditing ? 'PUT' : 'POST';
+  e.preventDefault();
 
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+  try {
+    if (isEditing) {
+      await updateApplication({
+        ...formData,
+        _id: selectedApp._id
       });
 
-      if (res.ok) {
-        toast.success(isEditing ? 'Job updated successfully!' : 'Job added successfully!');
-        fetchApplications();
-        fetchUnreadCount();
-        closeModal();
-      } else {
-        toast.error('Failed to save job');
-      }
-    } catch {
-      toast.error('Something went wrong');
-    }
-  };
+      toast.success('Job updated successfully!');
+    } else {
+      await addApplication(formData);
 
+      toast.success('Job added successfully!');
+    }
+
+    fetchApplications();
+    fetchUnreadCount();
+    closeModal();
+  } catch (err) {
+    toast.error(err.message);
+  }
+};
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this application?')) return;
     try {
