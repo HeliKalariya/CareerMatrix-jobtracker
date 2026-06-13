@@ -9,33 +9,33 @@ pipeline {
             }
         }
 
-        stage('Docker Version') {
-            steps {
-                bat 'docker --version'
-            }
-        }
-
-        stage('Build Backend Image') {
+        stage('Build Backend') {
             steps {
                 bat 'docker build -t careermatrix-backend ./backend'
             }
         }
 
-        stage('Build Frontend Image') {
+        stage('Build Frontend') {
             steps {
                 bat 'docker build -t careermatrix-frontend ./frontend'
             }
         }
 
+        stage('Deploy Containers') {
+            steps {
+                bat 'docker compose down'
+                bat 'docker compose up -d'
+            }
+        }
     }
 
     post {
         success {
-            echo 'Build Successful'
+            echo 'Deployment Successful'
         }
 
         failure {
-            echo 'Build Failed'
+            echo 'Deployment Failed'
         }
     }
 }
