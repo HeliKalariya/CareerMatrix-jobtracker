@@ -11,21 +11,21 @@ pipeline {
 
         stage('Build Backend') {
             steps {
-                bat 'docker build -t careermatrix-backend ./backend'
+                bat 'docker build -t careermatrix-backend:local ./backend'
             }
         }
 
         stage('Build Frontend') {
             steps {
-                bat 'docker build -t careermatrix-frontend ./frontend'
+                bat 'docker build -t careermatrix-frontend:local ./frontend'
             }
         }
 
         stage('Deploy Containers') {
             steps {
-                bat 'copy C:\\Jenkins-Secrets\\careermatrix.env backend\\.env'
-                bat 'docker compose down'
-                bat 'docker compose up -d'
+                bat 'copy /Y C:\\Jenkins-Secrets\\careermatrix.env backend\\.env'
+                bat 'docker compose up -d --no-build --remove-orphans'
+                bat 'docker compose ps'
             }
         }
     }

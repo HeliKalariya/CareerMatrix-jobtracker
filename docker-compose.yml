@@ -2,16 +2,32 @@
 services:
   backend:
     build: ./backend
+    image: careermatrix-backend:local
     container_name: careermatrix-backend
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     env_file:
       - ./backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/health').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   frontend:
     build: ./frontend
+    image: careermatrix-frontend:local
     container_name: careermatrix-frontend
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5

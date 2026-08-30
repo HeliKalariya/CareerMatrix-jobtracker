@@ -1,5 +1,4 @@
 import Application from '../models/Application.js';
-import { createNotification } from './notificationController.js';
 
 export const getApplications = async (req, res) => {
   const { search, status } = req.query;
@@ -31,14 +30,6 @@ export const createApplication = async (req, res) => {
       notes: req.body.notes || ""
     });
 
-    await createNotification({
-      user: req.user._id,
-      title: 'New Application Added',
-      message: `You applied for "${application.jobTitle}" at ${application.companyName}.`,
-      type: 'info',
-      application: application._id
-    });
-
     res.status(201).json(application);
   } catch (error) {
     console.error(error);
@@ -55,16 +46,6 @@ export const updateApplication = async (req, res) => {
     req.body,
     { new: true }
   );
-
-  if (req.body.status && req.body.status !== existing.status) {
-    await createNotification({
-      user: req.user._id,
-      title: 'Status Updated',
-      message: `"${app.jobTitle}" at ${app.companyName} moved to ${app.status}.`,
-      type: 'status_change',
-      application: app._id
-    });
-  }
 
   res.json(app);
 };

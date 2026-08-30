@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
@@ -24,11 +23,16 @@ app.get("/health", (req, res) => {
 // Routes
 app.use('/api/auth', (await import('./routes/authRoutes.js')).default);
 app.use('/api/applications', (await import('./routes/applicationRoutes.js')).default);
-app.use('/api/notifications', (await import('./routes/notificationRoutes.js')).default);
+app.use('/api/companies', (await import('./routes/companyRoutes.js')).default);
 
 app.get('/', (req, res) => res.send('CareerMatrix API is running 🚀'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const startServer = async () => {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();

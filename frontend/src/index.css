@@ -7,12 +7,40 @@
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: #0a0a0a;
-  color: #e5e7eb;
+  background: #F5EDE9;
+  color: #2c2624;
 }
 
+#root { min-height: 100vh; }
+
 .glass {
-  background: rgba(31, 31, 31, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e4d8d2;
+  box-shadow: 0 12px 30px rgba(83, 59, 49, 0.045);
 }
+
+.bg-\[\#0a0a0a\], .bg-\[\#12151f\], .bg-\[\#1a1f2e\], .bg-dark-900, .bg-dark-800 { background-color: #F5EDE9 !important; }
+.bg-white\/5 { background-color: rgba(112, 76, 59, 0.06) !important; }
+.border-white\/10 { border-color: #e7d9d2 !important; }
+.divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: #eaded8 !important; }
+.text-white { color: #2c2624; }
+.text-slate-400, .text-gray-400 { color: #796d68; }
+.text-slate-300 { color: #514744; }
+.text-slate-500, .text-gray-500 { color: #95857e; }
+.bg-blue-600, .bg-\[\#2d6cdf\] { background-color: #3d887b !important; color: #ffffff !important; }
+.hover\:bg-blue-700:hover, .hover\:bg-\[\#245bbd\]:hover { background-color: #327267 !important; }
+.bg-blue-500 { background-color: #3d887b !important; }
+.text-blue-400, .text-blue-300 { color: #3d887b !important; }
+.border-blue-500, .focus\:border-blue-500:focus, .focus\:border-\[\#2d6cdf\]:focus { border-color: #3d887b !important; }
+.bg-blue-500\/10, .bg-blue-500\/5 { background-color: rgba(61, 136, 123, 0.10) !important; }
+.border-blue-500\/30, .border-blue-500\/50, .border-blue-500\/70 { border-color: rgba(61, 136, 123, 0.35) !important; }
+.from-blue-500, .from-blue-600 { --tw-gradient-from: #3d887b var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(61 136 123 / 0) var(--tw-gradient-to-position) !important; }
+.via-indigo-600, .to-purple-500, .to-indigo-500, .to-violet-600, .to-violet-700 { --tw-gradient-to: #78aaa0 var(--tw-gradient-to-position) !important; }
+input, select, textarea { color: #2c2624; }
+input::placeholder, textarea::placeholder { color: #aa9a93; }
+
+.app-page-title { color: #29424c; font-size: clamp(2rem, 3vw, 3rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.05em; }
+.app-eyebrow { color: #3d887b; font-size: .75rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.app-subtitle { color: #718792; margin-top: .65rem; }
+.app-button { background: #3d887b; color: #fff; box-shadow: 0 10px 22px rgba(61, 136, 123, .18); }
+.app-button:hover { background: #327267; }

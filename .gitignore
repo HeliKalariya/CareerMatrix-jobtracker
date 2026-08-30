@@ -1,0 +1,18 @@
+# Dependencies and generated frontend output
+**/node_modules/
+**/dist/
+
+# Application secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Terraform local files and state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Private keys and local editor files
+*.pem
+.vscode/

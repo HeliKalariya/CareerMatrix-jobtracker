@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, MoreVertical, Eye, Edit2, Trash2, X, Download, Filter } from 'lucide-react';
+import { Plus, Eye, Edit2, Trash2, X, Download, Filter } from 'lucide-react';
 import useApplicationStore from '../store/applicationStore';
-import useNotificationStore from '../store/notificationStore';
+import useCompanyStore from '../store/companyStore';
 import StatusBadge from '../components/common/StatusBadge';
 import toast from 'react-hot-toast';
 
@@ -10,18 +10,17 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const Applications = () => {
   const navigate = useNavigate();
-  const { fetchUnreadCount } = useNotificationStore();
   const {
   applications,
   fetchApplications,
   deleteApplication,
   addApplication,
   updateApplication
-} = useApplicationStore();
+  } = useApplicationStore();
+  const { companies, fetchCompanies } = useCompanyStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,6 +42,7 @@ const Applications = () => {
 
   useEffect(() => {
     fetchApplications();
+    fetchCompanies();
   }, []);
 
   const filteredApps = applications.filter((app) => {
@@ -52,6 +52,9 @@ const Applications = () => {
     const matchesStatus = statusFilter === 'All' || app.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+  const statusSummary = useMemo(() => ['Applied', 'Interview', 'Offer', 'Rejected'].map((status) => ({
+    status, count: applications.filter((app) => app.status === status).length
+  })), [applications]);
 
   const openModal = (app = null, edit = false) => {
     if (app) {
@@ -78,7 +81,6 @@ const Applications = () => {
     }
     setIsEditing(edit);
     setIsModalOpen(true);
-    setOpenMenuId(null);
   };
 
   const closeModal = () => {
@@ -105,7 +107,6 @@ const Applications = () => {
     }
 
     fetchApplications();
-    fetchUnreadCount();
     closeModal();
   } catch (err) {
     toast.error(err.message);
@@ -119,7 +120,6 @@ const Applications = () => {
     } catch {
       toast.error('Failed to delete');
     }
-    setOpenMenuId(null);
   };
 
   const handleExport = () => {
@@ -151,36 +151,37 @@ const Applications = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-5 sm:flex-row sm:justify-between sm:items-end">
         <div>
-          <h1 className="text-3xl font-semibold text-white">My Jobs</h1>
-          <p className="text-slate-400 mt-1">{filteredApps.length} applications</p>
+          <p className="app-eyebrow">Your pipeline</p>
+          <h1 className="app-page-title mt-3">Applications</h1>
+          <p className="app-subtitle">{filteredApps.length} opportunities in view</p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-5 py-2.5 border rounded-2xl text-sm flex items-center gap-2 ${
-              showFilters ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:bg-white/5'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
+          <button onClick={() => setShowFilters(!showFilters)} className={`px-5 py-2.5 border rounded-xl text-sm flex items-center gap-2 font-semibold ${showFilters ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:bg-white/5'}`}><Filter className="w-4 h-4" />Filter</button>
           <button
             onClick={handleExport}
-            className="px-5 py-2.5 border border-white/10 rounded-2xl text-sm hover:bg-white/5 flex items-center gap-2"
+            className="px-5 py-2.5 border border-white/10 rounded-xl text-sm font-semibold hover:bg-white/5 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Export
           </button>
           <button
             onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-2xl text-sm font-medium flex items-center gap-2"
+            className="app-button px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Job
           </button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {statusSummary.map(({ status, count }) => (
+          <button key={status} onClick={() => { setStatusFilter(statusFilter === status ? 'All' : status); setShowFilters(true); }} className={`text-left glass rounded-2xl p-4 hover:border-blue-500/50 transition-colors ${statusFilter === status ? 'border-blue-500/70 bg-blue-500/10' : ''}`}>
+            <p className="text-xs text-slate-400">{status}</p><p className="text-2xl font-semibold mt-1">{count}</p>
+          </button>
+        ))}
       </div>
 
       {showFilters && (
@@ -218,7 +219,7 @@ const Applications = () => {
         {filteredApps.length === 0 ? (
           <p className="text-center text-slate-400 py-16">No applications found</p>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-white/10 text-left text-sm text-slate-400">
                 <th className="px-6 py-5 font-normal">Date Applied</th>
@@ -227,7 +228,7 @@ const Applications = () => {
                 <th className="px-6 py-5 font-normal">Location</th>
                 <th className="px-6 py-5 font-normal">Status</th>
                 <th className="px-6 py-5 font-normal">Source</th>
-                <th className="w-12"></th>
+                <th className="px-6 py-5 font-normal text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
@@ -238,56 +239,24 @@ const Applications = () => {
                   </td>
                   <td className="px-6 py-5 font-medium text-white">{app.jobTitle}</td>
                   <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold">
-                        {app.companyName?.[0] || '?'}
-                      </div>
-                      <span>{app.companyName}</span>
-                    </div>
+                    <span className="font-medium text-[#29424c]">{app.companyName}</span>
                   </td>
                   <td className="px-6 py-5 text-sm text-slate-400">{app.location || 'Remote'}</td>
                   <td className="px-6 py-5">
                     <StatusBadge status={app.status} />
                   </td>
                   <td className="px-6 py-5 text-sm text-slate-400">{app.jobSource || '—'}</td>
-                  <td className="px-6 py-5 relative">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === app._id ? null : app._id)}
-                      className="p-2 hover:bg-white/10 rounded-xl"
-                    >
-                      <MoreVertical className="w-5 h-5 text-slate-400" />
-                    </button>
-
-                    {openMenuId === app._id && (
-                      <div className="absolute right-6 top-12 bg-[#1a1f2e] border border-white/10 rounded-2xl shadow-2xl py-2 w-48 z-[100]">
-                        <button
-                          onClick={() => { navigate(`/applications/${app._id}`); setOpenMenuId(null); }}
-                          className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 text-sm"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => openModal(app, true)}
-                          className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 text-sm"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Edit Job
-                        </button>
-                        <button
-                          onClick={() => handleDelete(app._id)}
-                          className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 text-sm text-red-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                      <button onClick={() => navigate(`/applications/${app._id}`)} aria-label={`View ${app.jobTitle}`} title="View details" className="rounded-lg p-2 text-[#718792] transition hover:bg-[#f7efec] hover:text-[#3d887b]"><Eye className="h-4 w-4" /></button>
+                      <button onClick={() => openModal(app, true)} aria-label={`Edit ${app.jobTitle}`} title="Edit job" className="rounded-lg p-2 text-[#718792] transition hover:bg-[#f7efec] hover:text-[#3d887b]"><Edit2 className="h-4 w-4" /></button>
+                      <button onClick={() => handleDelete(app._id)} aria-label={`Delete ${app.jobTitle}`} title="Delete job" className="rounded-lg p-2 text-[#718792] transition hover:bg-[#fae9e6] hover:text-[#d75d52]"><Trash2 className="h-4 w-4" /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 
@@ -315,7 +284,9 @@ const Applications = () => {
                   </div>
                   <div>
                     <label className="block text-sm text-slate-400 mb-2">Company</label>
-                    <input type="text" required className="w-full bg-[#12151f] border border-white/10 rounded-2xl px-5 py-3" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} />
+                    <input type="text" required list="saved-companies" className="w-full bg-[#12151f] border border-white/10 rounded-2xl px-5 py-3" value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} />
+                    <datalist id="saved-companies">{companies.map((company) => <option key={company._id} value={company.name} />)}</datalist>
+                    {companies.length > 0 && <p className="text-xs text-slate-500 mt-2">Suggestions from your saved companies</p>}
                   </div>
                 </div>
 

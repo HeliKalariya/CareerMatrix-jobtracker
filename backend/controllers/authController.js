@@ -6,11 +6,17 @@ const generateToken = (id) => {
 };
 
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const name = req.body.name?.trim();
+  const email = req.body.email?.trim().toLowerCase();
+  const { password } = req.body;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Please fill all fields' });
   }
+  if (name.length < 2) return res.status(400).json({ message: 'Name must be at least 2 characters' });
+  if (!emailPattern.test(email)) return res.status(400).json({ message: 'Enter a valid email address' });
+  if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) return res.status(400).json({ message: 'Password must be 8+ characters with an uppercase letter and number' });
 
   const userExists = await User.findOne({ email });
   if (userExists) {
@@ -32,12 +38,16 @@ export const getMe = async (req, res) => {
   res.json({
     _id: req.user._id,
     name: req.user.name,
-    email: req.user.email
+    email: req.user.email,
+    createdAt: req.user.createdAt
   });
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
+  const { password } = req.body;
+
+  if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
 
   const user = await User.findOne({ email });
   if (user && await user.comparePassword(password)) {
@@ -50,4 +60,16 @@ export const loginUser = async (req, res) => {
   } else {
     res.status(401).json({ message: 'Invalid email or password' });
   }
+};
+
+export const updateProfile = async (req, res) => {
+  const name = req.body.name?.trim();
+  const email = req.body.email?.trim().toLowerCase();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!name || name.length < 2) return res.status(400).json({ message: 'Name must be at least 2 characters' });
+  if (!emailPattern.test(email)) return res.status(400).json({ message: 'Enter a valid email address' });
+  const existing = await User.findOne({ email, _id: { $ne: req.user._id } });
+  if (existing) return res.status(400).json({ message: 'That email address is already in use' });
+  const user = await User.findByIdAndUpdate(req.user._id, { name, email }, { new: true, runValidators: true });
+  res.json({ _id: user._id, name: user.name, email: user.email });
 };

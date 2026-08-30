@@ -6,7 +6,8 @@ import Dashboard from './pages/Dashboard'
 import Applications from './pages/Applications'
 import ApplicationForm from './pages/ApplicationForm'
 import ApplicationDetails from './pages/ApplicationDetails'
-import Notifications from './pages/Notifications'
+import Companies from './pages/Companies'
+import Profile from './pages/Profile'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 function App() {
@@ -20,10 +21,11 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/applications" element={<Applications />} />
+            <Route path="/companies" element={<Companies />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/applications/new" element={<ApplicationForm />} />
             <Route path="/applications/:id" element={<ApplicationDetails />} />
             <Route path="/applications/:id/edit" element={<ApplicationForm />} />
-            <Route path="/notifications" element={<Notifications />} />
           </Route>
         </Route>
 

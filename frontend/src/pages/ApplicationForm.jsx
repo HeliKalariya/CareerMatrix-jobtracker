@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useApplicationStore from '../store/applicationStore';
+import useCompanyStore from '../store/companyStore';
 import toast from 'react-hot-toast';
 
 const ApplicationForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addApplication, updateApplication, fetchApplicationById } = useApplicationStore();
+  const { companies, fetchCompanies } = useCompanyStore();
   const [loading, setLoading] = useState(!!id);
 
   const [formData, setFormData] = useState({
@@ -46,6 +48,8 @@ const ApplicationForm = () => {
     };
     load();
   }, [id]);
+
+  useEffect(() => { fetchCompanies(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,8 +96,10 @@ const ApplicationForm = () => {
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-2">Company</label>
-              <input type="text" required className="w-full bg-[#1a1f2e] border border-white/10 rounded-2xl px-5 py-3"
+              <input type="text" required list="saved-companies" className="w-full bg-[#1a1f2e] border border-white/10 rounded-2xl px-5 py-3"
                 value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} />
+              <datalist id="saved-companies">{companies.map((company) => <option key={company._id} value={company.name} />)}</datalist>
+              {companies.length > 0 && <p className="text-xs text-slate-500 mt-2">Start typing to select from your saved companies.</p>}
             </div>
           </div>
 

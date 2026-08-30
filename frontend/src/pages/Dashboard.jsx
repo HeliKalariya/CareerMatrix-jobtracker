@@ -1,5 +1,5 @@
-import { useEffect, useRef, useMemo } from 'react';
-import { Plus } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
+import { ArrowUpRight, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 import useApplicationStore from '../store/applicationStore';
@@ -9,234 +9,20 @@ import StatusBadge from '../components/common/StatusBadge';
 const Dashboard = () => {
   const { stats, applications, fetchApplications } = useApplicationStore();
   const { user } = useAuthStore();
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
-
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const { last7Days, last30Days, weeklyData, activityMap } = useMemo(() => {
-    const now = new Date();
-    const sevenAgo = new Date(now);
-    sevenAgo.setDate(sevenAgo.getDate() - 7);
-    const thirtyAgo = new Date(now);
-    thirtyAgo.setDate(thirtyAgo.getDate() - 30);
-
-    const last7 = applications.filter((a) => new Date(a.applicationDate) >= sevenAgo).length;
-    const last30 = applications.filter((a) => new Date(a.applicationDate) >= thirtyAgo).length;
-
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const next = new Date(d);
-      next.setDate(next.getDate() + 1);
-      const count = applications.filter((a) => {
-        const ad = new Date(a.applicationDate);
-        return ad >= d && ad < next;
-      }).length;
-      days.push({
-        day: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        count
-      });
-    }
-
-    const map = {};
-    applications.forEach((a) => {
-      const key = new Date(a.applicationDate).toISOString().split('T')[0];
-      map[key] = (map[key] || 0) + 1;
-    });
-
-    return { last7Days: last7, last30Days: last30, weeklyData: days, activityMap: map };
+  const chartRef = useRef(null); const chartInstance = useRef(null);
+  useEffect(() => { fetchApplications(); }, []);
+  const { last7, last30, weekly } = useMemo(() => {
+    const now = new Date(); const seven = new Date(now); seven.setDate(now.getDate() - 7); const thirty = new Date(now); thirty.setDate(now.getDate() - 30);
+    const days = Array.from({ length: 7 }, (_, index) => { const date = new Date(now); date.setDate(now.getDate() - (6 - index)); date.setHours(0, 0, 0, 0); const next = new Date(date); next.setDate(date.getDate() + 1); return { label: date.toLocaleDateString('en-US', { weekday: 'short' }), value: applications.filter((app) => { const applied = new Date(app.applicationDate); return applied >= date && applied < next; }).length }; });
+    return { last7: applications.filter((app) => new Date(app.applicationDate) >= seven).length, last30: applications.filter((app) => new Date(app.applicationDate) >= thirty).length, weekly: days };
   }, [applications]);
-
-  useEffect(() => {
-    if (!chartRef.current) return;
-    if (chartInstance.current) chartInstance.current.destroy();
-
-    chartInstance.current = new Chart(chartRef.current, {
-      type: 'bar',
-      data: {
-        labels: weeklyData.map((d) => d.day),
-        datasets: [{
-          label: 'Jobs Applied',
-          data: weeklyData.map((d) => d.count),
-          backgroundColor: '#3b82f6',
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-          y: { ticks: { color: '#64748b', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-        }
-      }
-    });
-
-    return () => chartInstance.current?.destroy();
-  }, [weeklyData]);
-
-  const recentApps = applications.slice(0, 5);
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
-  const year = new Date().getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const startDay = startOfYear.getDay();
-  const totalWeeks = 53;
-
-  const getIntensity = (dateKey) => {
-    const count = activityMap[dateKey] || 0;
-    if (count === 0) return 0;
-    if (count === 1) return 1;
-    if (count === 2) return 2;
-    if (count <= 4) return 3;
-    return 4;
-  };
-
-  const colors = ['#1f2937', '#334155', '#475569', '#60a5fa', '#2563eb'];
-
-  return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">
-            {greeting()}, {user?.name?.split(' ')[0] || 'there'} 👋
-          </h1>
-          <p className="text-slate-400 mt-1">Create new jobs to apply and track.</p>
-        </div>
-        <Link
-          to="/applications/new"
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl text-sm font-medium flex items-center gap-2 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Add New Job
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass p-6 rounded-3xl">
-          <p className="text-sm text-slate-400">Total Applications</p>
-          <p className="text-5xl font-semibold mt-3 text-white">{stats.total || 0}</p>
-        </div>
-        <div className="glass p-6 rounded-3xl">
-          <p className="text-sm text-slate-400">Last 7 Days</p>
-          <p className="text-5xl font-semibold mt-3">{last7Days}</p>
-          <div className="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all"
-              style={{ width: `${stats.total ? Math.min(100, (last7Days / stats.total) * 100) : 0}%` }}
-            />
-          </div>
-        </div>
-        <div className="glass p-6 rounded-3xl">
-          <p className="text-sm text-slate-400">Last 30 Days</p>
-          <p className="text-5xl font-semibold mt-3">{last30Days}</p>
-          <div className="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all"
-              style={{ width: `${stats.total ? Math.min(100, (last30Days / stats.total) * 100) : 0}%` }}
-            />
-          </div>
-        </div>
-        <div className="glass p-6 rounded-3xl">
-          <p className="text-sm text-slate-400">Offers Received</p>
-          <p className="text-5xl font-semibold mt-3 text-emerald-400">{stats.offer || 0}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 glass rounded-3xl p-6">
-          <h2 className="text-lg font-semibold mb-6">Weekly Activity</h2>
-          <div className="h-80">
-            <canvas ref={chartRef} />
-          </div>
-        </div>
-
-        <div className="lg:col-span-5 glass rounded-3xl p-6">
-          <div className="flex justify-between mb-5">
-            <h2 className="text-lg font-semibold">Recent Applications</h2>
-            <Link to="/applications" className="text-blue-400 text-sm hover:underline">View All</Link>
-          </div>
-          <div className="space-y-3">
-            {recentApps.length > 0 ? recentApps.map((app) => (
-              <Link
-                key={app._id}
-                to={`/applications/${app._id}`}
-                className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5"
-              >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center text-white font-bold">
-                  {app.companyName?.[0] || 'C'}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">{app.jobTitle}</p>
-                  <p className="text-sm text-slate-400">{app.companyName}</p>
-                </div>
-                <StatusBadge status={app.status} />
-              </Link>
-            )) : (
-              <p className="text-center py-12 text-slate-400">No applications yet</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="glass rounded-3xl p-6">
-        <h2 className="text-lg font-semibold mb-4">Activity Calendar ({year})</h2>
-        <div className="overflow-x-auto pb-4">
-          <div className="inline-block min-w-full">
-            <div className="grid grid-cols-12 gap-1 text-xs text-slate-400 mb-2 pl-3">
-              {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
-                <div key={month} className="text-center font-medium">{month}</div>
-              ))}
-            </div>
-            <div
-              className="grid gap-1"
-              style={{ gridTemplateColumns: `repeat(${totalWeeks}, 13px)`, gridTemplateRows: 'repeat(7, 13px)' }}
-            >
-              {Array.from({ length: totalWeeks * 7 }).map((_, i) => {
-                const week = Math.floor(i / 7);
-                const dayOfWeek = i % 7;
-                const dayOffset = week * 7 + dayOfWeek - startDay;
-                const date = new Date(year, 0, 1 + dayOffset);
-                if (date.getFullYear() !== year) {
-                  return <div key={i} style={{ width: '13px', height: '13px' }} />;
-                }
-                const dateKey = date.toISOString().split('T')[0];
-                const intensity = getIntensity(dateKey);
-                return (
-                  <div
-                    key={i}
-                    className="rounded-sm hover:scale-110 transition-transform cursor-pointer"
-                    title={`${dateKey}: ${activityMap[dateKey] || 0} applications`}
-                    style={{ backgroundColor: colors[intensity], width: '13px', height: '13px' }}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 mt-6 text-xs text-slate-400">
-          <span>Less</span>
-          <div className="flex gap-1">
-            {colors.map((color, i) => (
-              <div key={i} className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
-            ))}
-          </div>
-          <span>More</span>
-        </div>
-      </div>
-    </div>
-  );
+  useEffect(() => { if (!chartRef.current) return; chartInstance.current?.destroy(); chartInstance.current = new Chart(chartRef.current, { type: 'bar', data: { labels: weekly.map((item) => item.label), datasets: [{ data: weekly.map((item) => item.value), backgroundColor: ['#3d887b', '#f39456', '#3d887b', '#3d887b', '#3d887b', '#3d887b', '#3d887b'], borderRadius: 8, borderSkipped: false, maxBarThickness: 42 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#718792', font: { weight: 600 } }, border: { display: false } }, y: { display: false, beginAtZero: true } } } }); return () => chartInstance.current?.destroy(); }, [weekly]);
+  const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening';
+  const cards = [[stats.total || 0, 'Total applications', 'All time momentum'], [last7, 'Last 7 days', 'A fresh week starts here'], [last30, 'Last 30 days', 'Your current focus window'], [stats.offer || 0, 'Offers received', 'A strong step forward']];
+  return <div className="max-w-[1450px] mx-auto space-y-6 md:space-y-8"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="app-eyebrow">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p><h1 className="app-page-title mt-3">{greeting}, {user?.name?.split(' ')[0] || 'there'}</h1><p className="app-subtitle">A clear view of your next best move.</p></div><Link to="/applications/new" className="app-button rounded-xl px-5 py-3.5 text-sm font-semibold inline-flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add new job</Link></div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">{cards.map(([value, label, caption]) => <div key={label} className="glass rounded-2xl p-6 min-h-40 relative overflow-hidden"><div className="absolute -right-6 -bottom-7 h-20 w-20 rounded-full bg-[#f8ebe2]"/><p className="text-sm font-semibold text-[#718792]">{label}</p><p className="text-4xl font-semibold tracking-tight text-[#29424c] mt-4">{value}</p><p className="text-sm font-semibold text-[#3d887b] mt-3">{caption}</p></div>)}</div>
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-5"><section className="xl:col-span-7 glass rounded-2xl p-7"><div className="flex items-start justify-between"><div><h2 className="text-xl font-semibold text-[#29424c]">Weekly activity</h2><p className="text-sm text-[#718792] mt-1">Applications added by day</p></div><ArrowUpRight className="w-5 h-5 text-[#3d887b]"/></div><div className="h-72 mt-8"><canvas ref={chartRef}/></div></section>
+      <section className="xl:col-span-5 glass rounded-2xl p-7"><div className="flex justify-between items-start"><div><h2 className="text-xl font-semibold text-[#29424c]">Recent applications</h2><p className="text-sm text-[#718792] mt-1">The latest doors you opened</p></div><Link className="text-sm font-semibold text-[#3d887b]" to="/applications">See all</Link></div><div className="space-y-3 mt-7">{applications.slice(0, 4).map((app) => <Link to={`/applications/${app._id}`} key={app._id} className="flex items-center gap-3 rounded-xl bg-[#faf7f5] border border-[#eee2dc] p-4 hover:border-[#c4ded8]"><div className="w-10 h-10 rounded-xl bg-[#f2e5df] text-[#3d887b] flex items-center justify-center text-sm font-bold">{app.companyName?.slice(0, 2).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="font-semibold text-[#29424c] truncate">{app.jobTitle}</p><p className="text-sm text-[#718792] truncate">{app.companyName} · {new Date(app.applicationDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p></div><StatusBadge status={app.status}/></Link>)}{applications.length === 0 && <p className="py-14 text-center text-[#718792]">No applications yet.</p>}</div></section></div>
+  </div>;
 };
-
 export default Dashboard;

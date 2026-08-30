@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Edit2, Trash2, ExternalLink, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MapPin, Calendar, DollarSign } from 'lucide-react';
 import useApplicationStore from '../store/applicationStore';
 import StatusBadge from '../components/common/StatusBadge';
-import toast from 'react-hot-toast';
 
 const ApplicationDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { fetchApplicationById, deleteApplication } = useApplicationStore();
+  const { fetchApplicationById } = useApplicationStore();
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,17 +20,6 @@ const ApplicationDetails = () => {
     };
     load();
   }, [id]);
-
-  const handleDelete = async () => {
-    if (!window.confirm('Delete this application?')) return;
-    try {
-      await deleteApplication(id);
-      toast.success('Application deleted');
-      navigate('/applications');
-    } catch {
-      toast.error('Failed to delete');
-    }
-  };
 
   if (loading) {
     return <p className="text-center text-slate-400 py-20">Loading...</p>;
@@ -53,7 +41,7 @@ const ApplicationDetails = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       <button
         onClick={() => navigate('/applications')}
-        className="flex items-center gap-2 text-slate-400 hover:text-white text-sm"
+        className="flex items-center gap-2 text-[#718792] hover:text-[#3d887b] text-sm transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to applications
@@ -143,22 +131,6 @@ const ApplicationDetails = () => {
           </div>
         )}
 
-        <div className="flex gap-3 pt-4 border-t border-white/10">
-          <Link
-            to={`/applications/${id}/edit`}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-2xl text-sm font-medium"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </Link>
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-5 py-2.5 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-2xl text-sm"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
       </div>
     </div>
   );

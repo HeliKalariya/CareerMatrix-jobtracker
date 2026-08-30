@@ -1,13 +1,13 @@
 const StatusBadge = ({ status }) => {
   const colors = {
-    Applied: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',
-    Interview: 'bg-purple-500/10 text-purple-400 border border-purple-500/30',
-    Offer: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
-    Rejected: 'bg-red-500/10 text-red-400 border border-red-500/30',
+    Applied: 'bg-[#e8f3ee] text-[#3d887b]',
+    Interview: 'bg-[#e7f1f6] text-[#3d718c]',
+    Offer: 'bg-[#f5eadb] text-[#a66b31]',
+    Rejected: 'bg-[#f9e8e6] text-[#d75d52]',
   };
 
   return (
-    <span className={`px-3 py-1 text-xs font-medium rounded-full ${colors[status] || 'bg-gray-500/10 text-gray-400'}`}>
+    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${colors[status] || 'bg-[#eee7e3] text-[#718792]'}`}>
       {status}
     </span>
   );
